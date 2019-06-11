@@ -1,5 +1,4 @@
 <?php declare(strict_types=1);
-
 /**
  * Twiggy
  * Hooks for Twiggy
@@ -12,18 +11,22 @@
 namespace Twiggy;
 
 use MediaWiki\MediaWikiServices;
+use Twig\Loader\FilesystemLoader;
 
 class Hooks {
 	/**
-	 * Undocumented function
+	 * Handle Loading the TwiggyService
 	 *
 	 * @param MediaWikiServices $services
 	 *
 	 * @return void
 	 */
-	public static function onMediaWikiServices(MediaWikiServices $services) {
+	public static function onMediaWikiServices(MediaWikiServices $services): void {
 		$services->defineService('TwiggyService', function (MediaWikiServices $services) {
-			return TwigFactory::getInstance($services);
+			$mainConfig = $services->getMainConfig();
+			return new TwiggyService(
+				new FilesystemLoader($mainConfig->get('ExtensionDirectory'))
+			);
 		});
 	}
 }

@@ -9,31 +9,21 @@
 
 namespace Twiggy;
 
-use MediaWiki\MediaWikiServices;
+use Closure;
 use Twig\Environment;
-use Twig\Loader\FilesystemLoader;
+use Twig\Loader\LoaderInterface;
+use Twig\TwigFunction;
 
 class TwiggyService extends Environment {
 	/**
-	 * Container for FilesystemLoader
+	 * Constructor
 	 *
-	 * @var FilesystemLoader
+	 * @param LoaderInterface $loader
+	 * @param array           $options
 	 */
-	private $loader;
-
-	/**
-	 * Configure Twig
-	 *
-	 * @param MediaWikiServices $services
-	 */
-	public function __construct(MediaWikiServices $services) {
-		$mainConfig = $services->getMainConfig();
-		$cacheDirectory = $mainConfig->get('CacheDirectory');
-		$extensionDirectory = $mainConfig->get('ExtensionDirectory');
-		$this->loader = new FilesystemLoader($extensionDirectory);
-		parent::__construct($this->loader, [
-			'cache' => $cacheDirectory
-		]);
+	public function __construct(LoaderInterface $loader, $options = []) {
+		parent::__construct($loader, $options);
+		$this->addExtensionFunction('wfMessage', $this->wfMessageCallback());
 	}
 
 	/**
@@ -45,6 +35,36 @@ class TwiggyService extends Environment {
 	 * @return void
 	 */
 	public function setTemplateLocation(string $namespace, string $directory): void {
-		$this->loader->addPath($directory, $namespace);
+		$this->getLoader()->addPath($directory, $namespace);
+	}
+
+	/**
+	 * Extend Twig with a function
+	 *
+	 * @param string  $name
+	 * @param Closure $function
+	 *
+	 * @return $this
+	 */
+	public function addExtensionFunction(string $name, Closure $function) {
+		$this->addFunction(new TwigFunction($name, $function));
+		return $this;
+	}
+
+	/**
+	 * Wrap the wfMessage function
+	 *
+	 * @return Closure
+	 */
+	private function wfMessageCallback() {
+		return function (string $msg, string $output, ...$params) {
+			$allowedOutput = ['plain', 'text', 'escaped', 'parse', 'parseAsBlock'];
+			// Unsupported output modes are reported and defaulted to escaped.
+			if (!in_array($output, $allowedOutput)) {
+				wfLogWarning($output . " is not a supported output mode for wfMessage");
+				$output = 'escaped';
+			}
+			return wfMessage($msg, ...$params)->{$output}();
+		};
 	}
 }

@@ -65,10 +65,31 @@ public function execute($subpage) {
 ```
 4. Example Template `template.twig`
 ```twig
-<h1>{{ title }}</h1>
+<h1>{{ wfMessage('title_language_key', 'plain') }}</h1>
 <ul>
 {% for id, type in types %}
 	<li id="type_{{ id }}>{{ type.title }}</li>
 {% endfor %}
 </ul>
+```
+## wfMessage in Twig
+Twiggy has a pass-through function for `wfMessage()` support. The twig implementation has a slightly different API than the default `wfMessage` function.
+
+### $msg
+[ string | Required | Default: none ]
+
+Language Key to pass to `wfMessage()`.
+
+### $output
+[ string | Required | Default: none ]
+
+Output mode for wfMessage. Must be one of `plain`, `text`, `escaped`, `parse`, or `parseAsBlock`.
+
+### $params
+[ mixed | Optional | Default: null ]
+
+Any number of parameters to pass to language string.
+
+```
+{{ wfMessage(string $msg, string $output, ...$params) }}
 ```
