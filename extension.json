@@ -25,5 +25,22 @@
 	},
 	"config": {},
 	"load_composer_autoloader": true,
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "Twiggy/resources"
+	},
+	"ResourceModules": {
+		"ext.twiggy": {
+			"position": "top",
+			"dependencies": [
+				"mediawiki.api",
+				"mediawiki.api.messages",
+				"mediawiki.jqueryMsg"
+			],
+			"scripts": [
+				"js/dist/ext.twig.message.js"
+			]
+		}
+	},
 	"manifest_version": 2
 }
