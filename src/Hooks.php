@@ -25,7 +25,8 @@ class Hooks {
 		$services->defineService('TwiggyService', function (MediaWikiServices $services) {
 			$mainConfig = $services->getMainConfig();
 			return new TwiggyService(
-				new FilesystemLoader($mainConfig->get('ExtensionDirectory'))
+				new FilesystemLoader($mainConfig->get('ExtensionDirectory')),
+				$mainConfig
 			);
 		});
 	}

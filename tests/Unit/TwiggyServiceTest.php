@@ -20,7 +20,10 @@ class TwiggyServiceTest extends TestCase {
 	 * @return TwiggyService
 	 */
 	protected function createTwiggyService(): TwiggyService {
-		return new TwiggyService(new FilesystemLoader(self::WORKING_DIR));
+		$mockConfig = $this->getMock('GlobalVarConfig');
+		$mockConfig->shouldReceive('get')->with('TwiggyAllowedPHPFunctions')->andReturn(['strtoupper']);
+		$mockConfig->shouldReceive('get')->with('TwiggyBlacklistedPHPFunctions')->andReturn(['shell_exec']);
+		return new TwiggyService(new FilesystemLoader(self::WORKING_DIR), $mockConfig);
 	}
 
 	/**
@@ -50,22 +53,5 @@ class TwiggyServiceTest extends TestCase {
 		$paths = $loader->getPaths('test');
 		$this->assertArrayHasKey('test', array_flip($namespaces));
 		$this->assertArrayHasKey(self::WORKING_DIR, array_flip($paths));
-	}
-
-	/**
-	 * Test that a function can be added
-	 *
-	 * @covers TwiggyService::addExtensionFunction
-	 *
-	 * @return void
-	 */
-	public function testAddExtensionFunction() {
-		$twiggy = $this->createTwiggyService();
-		$twiggy->addExtensionFunction('testFunction', function (string $text) {
-			return $text . '_tested';
-		});
-		$test = $twiggy->getFunction('testFunction')->getCallable();
-		$value = $test('test');
-		$this->assertEquals('test_tested', $value);
 	}
 }

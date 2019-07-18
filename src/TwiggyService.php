@@ -9,21 +9,22 @@
 
 namespace Twiggy;
 
-use Closure;
+use GlobalVarConfig;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
-use Twig\TwigFunction;
+use Umpirsky\Twig\Extension\PhpFunctionExtension;
 
 class TwiggyService extends Environment {
 	/**
 	 * Constructor
 	 *
 	 * @param LoaderInterface $loader
+	 * @param array           $mwConfig
 	 * @param array           $options
 	 */
-	public function __construct(LoaderInterface $loader, $options = []) {
+	public function __construct(LoaderInterface $loader, $mwConfig, $options = []) {
 		parent::__construct($loader, $options);
-		$this->addExtensionFunction('wfMessage', $this->wfMessageCallback());
+		$this->registerPhpFunctionExtension($mwConfig);
 	}
 
 	/**
@@ -39,32 +40,19 @@ class TwiggyService extends Environment {
 	}
 
 	/**
-	 * Extend Twig with a function
+	 * Handle setup for PhpFunctionExtension
 	 *
-	 * @param string  $name
-	 * @param Closure $function
+	 * @param GlobalVarConfig $mwConfig
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function addExtensionFunction(string $name, Closure $function) {
-		$this->addFunction(new TwigFunction($name, $function));
-		return $this;
-	}
+	private function registerPhpFunctionExtension($mwConfig) {
+		$functionList = array_unique($mwConfig->get('TwiggyAllowedPHPFunctions'));
+		$functionList = array_filter($functionList, function ($func) use ($mwConfig) {
+			return !in_array($func, $mwConfig->get('TwiggyBlacklistedPHPFunctions'));
+		});
 
-	/**
-	 * Wrap the wfMessage function
-	 *
-	 * @return Closure
-	 */
-	private function wfMessageCallback() {
-		return function (string $msg, string $output, ...$params) {
-			$allowedOutput = ['plain', 'text', 'escaped', 'parse', 'parseAsBlock'];
-			// Unsupported output modes are reported and defaulted to escaped.
-			if (!in_array($output, $allowedOutput)) {
-				wfLogWarning($output . " is not a supported output mode for wfMessage");
-				$output = 'escaped';
-			}
-			return wfMessage($msg, ...$params)->{$output}();
-		};
+		$pfExtension = new PhpFunctionExtension($functionList);
+		$this->addExtension($pfExtension);
 	}
 }

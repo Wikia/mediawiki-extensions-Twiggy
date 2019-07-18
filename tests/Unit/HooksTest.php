@@ -49,10 +49,12 @@ class HooksTest extends TestCase {
 
 		$mockConfig = $this->getMock('GlobalVarConfig');
 		$mockConfig->shouldReceive('get')->with('ExtensionDirectory')->andReturn(self::WORKING_DIR);
+		$mockConfig->shouldReceive('get')->with('TwiggyAllowedPHPFunctions')->andReturn(['strtoupper']);
+		$mockConfig->shouldReceive('get')->with('TwiggyBlacklistedPHPFunctions')->andReturn(['shell_exec']);
 
 		$mockMWServices->shouldReceive('getMainConfig')->andReturn($mockConfig);
 
-		$expected = new TwiggyService(new FilesystemLoader(self::WORKING_DIR));
+		$expected = new TwiggyService(new FilesystemLoader(self::WORKING_DIR), $mockConfig);
 
 		$mockMWServices->shouldReceive('defineService')
 			->with('TwiggyService', Closure::class)
