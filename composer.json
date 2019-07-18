@@ -1,6 +1,7 @@
 {
     "require": {
-        "twig/twig": "^2.0"
+        "twig/twig": "^2.0",
+        "umpirsky/twig-php-function": "^0.2.0"
     },
     "require-dev": {
         "hydrawiki/hydrawiki-codesniffer": "^1.0",
