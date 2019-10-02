@@ -47,7 +47,6 @@
 			"position": "top",
 			"dependencies": [
 				"mediawiki.api",
-				"mediawiki.api.messages",
 				"mediawiki.jqueryMsg"
 			],
 			"scripts": [
