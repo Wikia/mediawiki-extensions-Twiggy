@@ -54,4 +54,13 @@ class TwiggyServiceTest extends TestCase {
 		$this->assertArrayHasKey('test', array_flip($namespaces));
 		$this->assertArrayHasKey(self::WORKING_DIR, array_flip($paths));
 	}
+
+	public function testIntegratesPhpFunctionExtension(): void {
+		$twiggy = $this->createTwiggyService();
+		$twiggy->setTemplateLocation('TestFixtures', __DIR__ . '/fixtures' );
+
+		$output = $twiggy->render( '@TestFixtures/function_test.twig', [ 'arg' => 'test' ] );
+
+		$this->assertSame( "<div class=\"twig-test\">TEST</div>\n", $output );
+	}
 }

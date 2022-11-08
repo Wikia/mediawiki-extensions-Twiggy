@@ -12,7 +12,6 @@ namespace Twiggy;
 use GlobalVarConfig;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
-use Umpirsky\Twig\Extension\PhpFunctionExtension;
 
 class TwiggyService extends Environment {
 	/**
