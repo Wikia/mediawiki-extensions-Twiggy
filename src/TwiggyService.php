@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php
 /**
  * Twig Factory
  *
@@ -7,51 +7,33 @@
  * @license GPL-2.0-or-later
  */
 
+declare( strict_types=1 );
+
 namespace Twiggy;
 
-use GlobalVarConfig;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
 class TwiggyService extends Environment {
-	/**
-	 * Constructor
-	 *
-	 * @param LoaderInterface $loader
-	 * @param array           $mwConfig
-	 * @param array           $options
-	 */
-	public function __construct(LoaderInterface $loader, $mwConfig, $options = []) {
-		parent::__construct($loader, $options);
-		$this->registerPhpFunctionExtension($mwConfig);
+	public function __construct(
+		LoaderInterface $loader,
+		array $allowedPhpFunctions,
+		array $blacklistedPhpFunctions
+	) {
+		parent::__construct( $loader );
+
+		$functionList = array_filter(
+			array_unique( $allowedPhpFunctions ),
+			fn ( $func ): bool => !in_array( $func, $blacklistedPhpFunctions )
+		);
+
+		$this->addExtension( new PhpFunctionExtension( $functionList ) );
 	}
 
 	/**
 	 * Add a Template Location
-	 *
-	 * @param string $namespace
-	 * @param string $directory
-	 *
-	 * @return void
 	 */
-	public function setTemplateLocation(string $namespace, string $directory): void {
-		$this->getLoader()->addPath($directory, $namespace);
-	}
-
-	/**
-	 * Handle setup for PhpFunctionExtension
-	 *
-	 * @param GlobalVarConfig $mwConfig
-	 *
-	 * @return void
-	 */
-	private function registerPhpFunctionExtension($mwConfig) {
-		$functionList = array_unique($mwConfig->get('TwiggyAllowedPHPFunctions'));
-		$functionList = array_filter($functionList, function ($func) use ($mwConfig) {
-			return !in_array($func, $mwConfig->get('TwiggyBlacklistedPHPFunctions'));
-		});
-
-		$pfExtension = new PhpFunctionExtension($functionList);
-		$this->addExtension($pfExtension);
+	public function setTemplateLocation( string $namespace, string $directory ): void {
+		$this->getLoader()->addPath( $directory, $namespace );
 	}
 }

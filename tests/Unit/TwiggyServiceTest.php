@@ -7,35 +7,34 @@
  * @license GPL-2.0-or-later
  */
 
-namespace Test\Unit;
+namespace Twiggy\tests;
 
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 use Twiggy\TwiggyService;
 
 class TwiggyServiceTest extends TestCase {
-	/**
-	 * Create a new TwiggyService Instance
-	 *
-	 * @return TwiggyService
-	 */
-	protected function createTwiggyService(): TwiggyService {
-		$mockConfig = $this->getMock('GlobalVarConfig');
-		$mockConfig->shouldReceive('get')->with('TwiggyAllowedPHPFunctions')->andReturn(['strtoupper']);
-		$mockConfig->shouldReceive('get')->with('TwiggyBlacklistedPHPFunctions')->andReturn(['shell_exec']);
-		return new TwiggyService(new FilesystemLoader(self::WORKING_DIR), $mockConfig);
+	private string $tempDir;
+	private TwiggyService $sut;
+
+	protected function setUp(): void {
+		parent::setUp();
+		$this->tempDir = sys_get_temp_dir() . '/mw-phpunit-twiggy-' . random_int( 0, 999 );
+		mkdir( $this->tempDir );
+
+		$this->sut = new TwiggyService(
+			new FilesystemLoader( $this->tempDir ),
+			[ 'strtoupper' ],
+			[ 'shell_exec' ]
+		);
 	}
 
-	/**
-	 * Test that TwiggyService can be initialized
-	 *
-	 * @covers TwiggyService::_construct
-	 *
-	 * @return void
-	 */
-	public function testNewTwiggyService(): void {
-		$twiggy = $this->createTwiggyService();
-		$this->assertInstanceOf(TwiggyService::class, $twiggy);
+	protected function tearDown(): void {
+		parent::tearDown();
+		if ( is_dir( $this->tempDir ) ) {
+			rmdir( $this->tempDir );
+		}
 	}
 
 	/**
@@ -46,21 +45,27 @@ class TwiggyServiceTest extends TestCase {
 	 * @return void
 	 */
 	public function testCanAddTemplateLocation(): void {
-		$twiggy = $this->createTwiggyService();
-		$twiggy->setTemplateLocation('test', self::WORKING_DIR);
-		$loader = $twiggy->getLoader();
+		$this->sut->setTemplateLocation( 'test', $this->tempDir );
+		$loader = $this->sut->getLoader();
 		$namespaces = $loader->getNamespaces();
-		$paths = $loader->getPaths('test');
-		$this->assertArrayHasKey('test', array_flip($namespaces));
-		$this->assertArrayHasKey(self::WORKING_DIR, array_flip($paths));
+		$paths = $loader->getPaths( 'test' );
+		$this->assertArrayHasKey( 'test', array_flip( $namespaces ) );
+		$this->assertArrayHasKey( $this->tempDir, array_flip( $paths ) );
 	}
 
-	public function testIntegratesPhpFunctionExtension(): void {
-		$twiggy = $this->createTwiggyService();
-		$twiggy->setTemplateLocation('TestFixtures', __DIR__ . '/fixtures' );
+	public function testRenderTemplateWithAllowedFunctions(): void {
+		$this->sut->setTemplateLocation( 'TestFixtures', __DIR__ . '/fixtures' );
 
-		$output = $twiggy->render( '@TestFixtures/function_test.twig', [ 'arg' => 'test' ] );
+		$output = $this->sut->render( '@TestFixtures/function_test.twig', [ 'arg' => 'test' ] );
 
 		$this->assertSame( "<div class=\"twig-test\">TEST</div>\n", $output );
+	}
+
+	public function testDisallowBlockedFunctions(): void {
+		$this->sut->setTemplateLocation( 'TestFixtures', __DIR__ . '/fixtures' );
+		$this->expectException( SyntaxError::class );
+		$this->expectExceptionMessage( 'Unknown "shell_exec" function.' );
+
+		$this->sut->render( '@TestFixtures/dangerous.twig', [ 'arg' => 'sudo apt-get install malware' ] );
 	}
 }
