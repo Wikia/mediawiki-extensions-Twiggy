@@ -22,10 +22,7 @@ class TwiggyService extends Environment {
 	) {
 		parent::__construct( $loader );
 
-		$functionList = array_filter(
-			array_unique( $allowedPhpFunctions ),
-			fn ( $func ): bool => !in_array( $func, $blacklistedPhpFunctions )
-		);
+		$functionList = array_unique( array_diff( $allowedPhpFunctions, $blacklistedPhpFunctions ) );
 
 		$this->addExtension( new PhpFunctionExtension( $functionList ) );
 	}
