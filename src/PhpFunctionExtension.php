@@ -22,6 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 namespace Twiggy;
 
 use Twig\Extension\AbstractExtension;
@@ -30,53 +31,15 @@ use Twig\TwigFunction;
 /**
  * Twig extension that allows a subset of PHP functions to be callable directly from Twig templates.
  */
-class PhpFunctionExtension extends AbstractExtension
-{
-	private $functions = [
-		'uniqid',
-		'floor',
-		'ceil',
-		'addslashes',
-		'chr',
-		'chunk_​split',
-		'convert_​uudecode',
-		'crc32',
-		'crypt',
-		'hex2bin',
-		'md5',
-		'sha1',
-		'strpos',
-		'strrpos',
-		'ucwords',
-		'wordwrap',
-		'gettype',
-	];
-
-	public function __construct(array $functions = [])
-	{
-		if ($functions) {
-			$this->allowFunctions($functions);
-		}
+class PhpFunctionExtension extends AbstractExtension {
+	public function __construct( private array $functions ) {
 	}
 
-	public function getFunctions()
-	{
-		$twigFunctions = [];
-
-		foreach ($this->functions as $function) {
-			$twigFunctions[] = new TwigFunction($function, $function);
-		}
-
-		return $twigFunctions;
-	}
-
-	public function allowFunction($function)
-	{
-		$this->functions[] = $function;
-	}
-
-	public function allowFunctions(array $functions)
-	{
-		$this->functions = $functions;
+	/** @inheritDoc */
+	public function getFunctions() {
+		return array_map(
+			static fn ( $function ): TwigFunction => new TwigFunction( $function, $function ),
+			$this->functions
+		);
 	}
 }

@@ -3,13 +3,10 @@
         "twig/twig": "^v3.4.3"
     },
     "require-dev": {
-        "jakub-onderka/php-console-highlighter": "^0.4.0",
-        "jakub-onderka/php-parallel-lint": "^1.0",
-        "mediawiki/minus-x": "^0.3.2",
-        "mockery/mockery": "^1.2",
-        "php-mock/php-mock-mockery": "^1.3",
-        "phpunit/phpunit": "^9",
-        "symfony/filesystem": "^4.3"
+        "mediawiki/minus-x": "^1.1",
+        "mediawiki/mediawiki-codesniffer": "38.0.0",
+        "mediawiki/mediawiki-phan-config": "^0.11.1",
+        "phpunit/phpunit": "^9"
     },
     "autoload": {
         "psr-4": {
@@ -28,7 +25,6 @@
     },
     "scripts": {
         "test": [
-            "parallel-lint . --exclude vendor --exclude node_modules",
             "phpcs -p -s",
             "minus-x check .",
             "phpunit"
@@ -37,7 +33,8 @@
             "minus-x fix .",
             "phpcbf"
         ],
+        "phpcs": "phpcs",
+        "phan": "vendor/bin/phan -d . --long-progress-bar",
         "phpunit": "phpunit"
     }
-
 }
