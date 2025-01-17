@@ -32,11 +32,11 @@ use Twig\TwigFunction;
  * Twig extension that allows a subset of PHP functions to be callable directly from Twig templates.
  */
 class PhpFunctionExtension extends AbstractExtension {
-	public function __construct( private array $functions ) {
+	public function __construct( private readonly array $functions ) {
 	}
 
 	/** @inheritDoc */
-	public function getFunctions() {
+	public function getFunctions(): array {
 		return array_map(
 			static fn ( $function ): TwigFunction => new TwigFunction( $function, $function ),
 			$this->functions

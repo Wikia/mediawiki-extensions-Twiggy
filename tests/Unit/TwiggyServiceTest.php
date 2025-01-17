@@ -7,7 +7,7 @@
  * @license GPL-2.0-or-later
  */
 
-namespace Twiggy\tests;
+namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Twig\Error\SyntaxError;
@@ -40,7 +40,7 @@ class TwiggyServiceTest extends TestCase {
 	/**
 	 * Test that template location is added correctly
 	 *
-	 * @covers TwiggyService::setTemplateLocation
+	 * @covers \Twiggy\TwiggyService::setTemplateLocation
 	 *
 	 * @return void
 	 */
